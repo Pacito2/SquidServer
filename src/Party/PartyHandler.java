@@ -11,12 +11,14 @@ public class PartyHandler {
             if(Server.userList.contains(target)){
                 target = Server.userList.get(Server.userList.indexOf(target));
 
-                // Setting new join request
-                if(client.getRequestedUser() != null)
-                    client.setRequestedUser(null);
-                client.setRequestedUser(target);
-
                 try{
+                    // Setting new join request
+                    if(client.getRequestedUser().getName() != null){
+                        client.getRequestedUser().getWriter().writeUTF(client.getName() + " abandoned his invitation request!");
+                        client.setRequestedUser(new User(null));
+                    }
+                    client.setRequestedUser(target);
+
                     target.getWriter().writeUTF(client.getName() + " want to join this chat. /accept " + client.getName());
                 }
                 catch (Exception e){
@@ -50,7 +52,7 @@ public class PartyHandler {
                     target.setParty(client.getParty());
 
                     // Return party accept success
-                    response = targetName + " joined " + client.getName() + " !";
+                    response = targetName + " joined " + client.getName() + "!";
                 }
                 else
                     // Return invalid
