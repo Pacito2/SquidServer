@@ -1,6 +1,6 @@
 package Main;
 
-import party.User;
+import Party.User;
 
 import java.io.*;
 import java.net.*;

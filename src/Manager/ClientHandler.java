@@ -1,8 +1,7 @@
 package Manager;
 
-import party.Party;
-import party.PartyHandler;
-import party.User;
+import Party.PartyHandler;
+import Party.User;
 
 import java.io.IOException;
 
@@ -20,7 +19,7 @@ public class ClientHandler extends Thread
     public void run()
     {
         try {
-            client.getWriter().writeUTF("Welcome " + client.getName() + " to this Squirtle server !");
+            client.getWriter().writeUTF("Welcome " + client.getName() + " to this Squid server !");
 
             while(client.isConnected())
             {
@@ -34,33 +33,32 @@ public class ClientHandler extends Thread
                         case "leave" :
                             PartyHandler.sendMessageToParty(client.getParty(), client.getName() + " left the chat");
                             client.createParty();
-                            System.out.println("Client leave : " + client.getSocket());
+                            System.out.println(client.getName() + " leave : " + client.getSocket());
                             client.getSocket().close();
                             return;
                         case "join" :
-                            if(args.length == 2)
-                            {
-                                System.out.println("Client " + client.getName() + " want to chat with " + args[1]);
-
-                                // Try to connect client to an other session
-                                switch (PartyHandler.tryJoinParty(client, args[1]))
-                                {
-                                    case 0 :
-                                        System.out.println("Can't found user \"" + args[1] + "\"");
-                                        break;
-                                    case 1 :
-                                        System.out.println("You can't invite yourself!");
-                                        break;
-                                    case 2 :
-                                        System.out.println("Connecting " + client.getName() + " to " + args[1] + "...");
-                                        PartyHandler.sendMessageToParty(client.getParty(), client.getName() + " joined " + args[1]);
-                                        break;
-                                }
+                            if(args.length == 2) {
+                                // Try to connect client to an other chat
+                                String responseMessage = PartyHandler.tryJoinParty(client, args[1]);
+                                client.getWriter().writeUTF(responseMessage);
+                                System.out.println("[" + client.getName() + " " + args[0] + "] : " + responseMessage);
                             }
                             else
                                 client.getWriter().writeUTF("Invalid syntax : /join <username>");
                             break;
-                        case "party" :
+                        case "accept" :
+                            if(args.length == 2) {
+                                System.out.println(client.getName() + " want to accept " + args[1]);
+
+                                // Try to accept client to the chat
+                                String responseMessage = PartyHandler.tryAcceptUser(client, args[1]);
+                                client.getWriter().writeUTF(responseMessage);
+                                System.out.println("[" + client.getName() + " " + args[0] + "] : " + responseMessage);
+                            }
+                            else
+                                client.getWriter().writeUTF("Invalid syntax : /accept <username>");
+                            break;
+                        case "party":
                             String users = "";
                             int number = 0;
                             for(User user : client.getParty().getUserList()){

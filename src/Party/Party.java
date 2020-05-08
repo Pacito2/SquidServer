@@ -1,4 +1,4 @@
-package party;
+package Party;
 
 import java.util.ArrayList;
 
