@@ -36,22 +36,20 @@ public class ClientHandler extends Thread
                             System.out.println(client.getName() + " leave : " + client.getSocket());
                             client.getSocket().close();
                             return;
-                        case "join" :
+                        case "invite" :
                             if(args.length == 2) {
-                                // Try to connect client to an other chat
-                                String responseMessage = PartyHandler.tryJoinParty(client, args[1]);
+                                // Try to invite a client
+                                String responseMessage = PartyHandler.tryInviteParty(client, args[1]);
                                 client.getWriter().writeUTF(responseMessage);
                                 System.out.println("[" + client.getName() + " " + args[0] + "] : " + responseMessage);
                             }
                             else
-                                client.getWriter().writeUTF("Invalid syntax : /join <username>");
+                                client.getWriter().writeUTF("Invalid syntax : /" + args[1] + " <username>");
                             break;
-                        case "accept" :
+                        case "join" :
                             if(args.length == 2) {
-                                System.out.println(client.getName() + " want to accept " + args[1]);
-
-                                // Try to accept client to the chat
-                                String responseMessage = PartyHandler.tryAcceptUser(client, args[1]);
+                                // Try to join a client
+                                String responseMessage = PartyHandler.tryJoinUser(client, args[1]);
                                 client.getWriter().writeUTF(responseMessage);
                                 System.out.println("[" + client.getName() + " " + args[0] + "] : " + responseMessage);
                             }
@@ -66,7 +64,7 @@ public class ClientHandler extends Thread
                                 number++;
                             }
                             users = users.substring(0, users.length() - 2);
-                            System.out.println(client.getName() + " requested to show party list : " + users);
+                            System.out.println("[" + client.getName() + " " + args[0] + "] : " + users);
                             client.getWriter().writeUTF(number + " party member(s) : " + users);
                             break;
                     }

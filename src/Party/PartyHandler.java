@@ -3,30 +3,37 @@ package Party;
 import Main.Server;
 
 public class PartyHandler {
-    public static String tryJoinParty(User client, String targetName){
+    public static String tryInviteParty(User client, String targetName){
         // Return unknow user
         String response = "Can't found user \"" + targetName + "\"";
         if(!client.getName().equals(targetName)){
             User target = new User(targetName);
             if(Server.userList.contains(target)){
                 target = Server.userList.get(Server.userList.indexOf(target));
+                Party party = client.getParty();
+                if(!party.getInvitedUsers().contains(target)){
+                    if(!party.getUserList().contains(target))
+                    {
+                        try{
+                            // Adding client to the invite list
+                            party.addInvitedUser(target);
 
-                try{
-                    // Setting new join request
-                    if(client.getRequestedUser().getName() != null){
-                        client.getRequestedUser().getWriter().writeUTF(client.getName() + " abandoned his invitation request!");
-                        client.setRequestedUser(new User(null));
+                            target.getWriter().writeUTF(client.getName() + " invited you to his chat!");
+
+                            // Return invite success
+                            response = client.getName() + " invited " + targetName + "!";
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
-                    client.setRequestedUser(target);
-
-                    target.getWriter().writeUTF(client.getName() + " want to join this chat. /accept " + client.getName());
+                    else
+                        // Return client already in the party
+                        response = targetName + " is already in the chat!";
                 }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-
-                // Return party join success
-                response = "Waiting for " + targetName + " chat...";
+                else
+                    // Return client already in invite list
+                    response = targetName + " is already on the invitation list!";
             }
         }
         else
@@ -35,28 +42,29 @@ public class PartyHandler {
         return response;
     }
 
-    public static String tryAcceptUser(User client, String targetName){
+    public static String tryJoinUser(User client, String targetName){
         // Return unknow user
         String response = "Can't found user \"" + targetName + "\"";
         if(!client.getName().equals(targetName)){
             User target = new User(targetName);
             if(Server.userList.contains(target)){
                 target = Server.userList.get(Server.userList.indexOf(target));
+                Party newParty = target.getParty();
 
-                if(target.getRequestedUser().equals(client)){
-                    target.setRequestedUser(new User(null));
+                if(newParty.getInvitedUsers().contains(client)){
+                    // Return join success
+                    response = client.getName() + " joined the chat!";
+                    sendMessageToParty(newParty, response);
 
                     // Setting user party
-                    client.getParty().addUser(target);
-                    target.getParty().removeUser(target);
-                    target.setParty(client.getParty());
-
-                    // Return party accept success
-                    response = targetName + " joined " + client.getName() + "!";
+                    newParty.addUser(client);
+                    client.getParty().removeUser(client);
+                    client.setParty(newParty);
+                    newParty.removeInvitedUser(client);
                 }
                 else
-                    // Return invalid
-                    response = targetName + " doesn't want to join you!";
+                    // Return insufficient permission
+                    response = "You were not invited by " + targetName + "!";
             }
         }
         else

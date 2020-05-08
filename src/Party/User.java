@@ -16,7 +16,6 @@ public class User {
 
     private boolean connected;
     private Thread session;
-    private User requestedUser;
     private Party party;
 
     public User(String name){
@@ -30,7 +29,6 @@ public class User {
         this.writer = writer;
         this.connected = true;
         this.session = new ClientHandler(this);
-        this.requestedUser = new User(null);
         this.createParty();
     }
 
@@ -88,14 +86,6 @@ public class User {
 
     public Thread getSession() {
         return session;
-    }
-
-    public void setRequestedUser(User requestedUser) {
-        this.requestedUser = requestedUser;
-    }
-
-    public User getRequestedUser() {
-        return requestedUser;
     }
 
     public void setParty(Party party) {
