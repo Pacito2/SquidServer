@@ -1,5 +1,6 @@
 package manager;
 
+import party.Party;
 import party.PartyHandler;
 import party.User;
 
@@ -19,7 +20,9 @@ public class ClientHandler extends Thread {
     @Override
     public void run() {
         try {
-            client.getWriter().writeUTF("Welcome " + client.getName() + " to this Squid server !");
+            String name = client.getName();
+            Party party = client.getParty();
+            client.getWriter().writeUTF("Welcome " + name + " to this Squid server !");
 
             while (client.isConnected()) {
                 String clientMessage = client.getReader().readUTF();
@@ -27,14 +30,14 @@ public class ClientHandler extends Thread {
                 // Handling client command
                 if (clientMessage.charAt(0) == '/') {
                     String[] args = clientMessage.substring(1).split("\\s+");
-                    System.out.println(client.getName() + " : " + clientMessage);
+                    System.out.println(name + " : " + clientMessage);
                     switch (args[0]) {
                         case "commands":
                             client.getWriter().writeUTF("Command list : quit, leave, party");
                             break;
                         case "quit":
-                            PartyHandler.sendMessageToParty(client.getParty(), client.getName() + " left the chat!");
-                            System.out.println(client.getName() + " disconnected : " + client.getSocket());
+                            PartyHandler.sendMessageToParty(party, name + " left the chat!");
+                            System.out.println(name + " disconnected : " + client.getSocket());
                             client.setConnected(false);
                             client.getSocket().close();
                             return;
@@ -49,7 +52,7 @@ public class ClientHandler extends Thread {
                                                 response = PartyHandler.tryInviteParty(client, args[2]);
 
                                             client.getWriter().writeUTF(response);
-                                            System.out.println("[" + client.getName() + " " + args[0] + "] : " + response);
+                                            System.out.println("[" + name + " " + args[0] + "] : " + response);
                                         } else
                                             client.getWriter().writeUTF("Invalid syntax : /" + args[0] + " " + args[1] + " <username>");
                                         break;
@@ -61,7 +64,7 @@ public class ClientHandler extends Thread {
                                                 response = PartyHandler.tryJoinUser(client, args[2]);
 
                                             client.getWriter().writeUTF(response);
-                                            System.out.println("[" + client.getName() + " " + args[0] + "] : " + response);
+                                            System.out.println("[" + name + " " + args[0] + "] : " + response);
                                         } else
                                             client.getWriter().writeUTF("Invalid syntax : /join <username>");
                                         break;
@@ -73,7 +76,7 @@ public class ClientHandler extends Thread {
                                                 response = PartyHandler.tryToKick(client, args[2]);
 
                                             client.getWriter().writeUTF(response);
-                                            System.out.println("[" + client.getName() + " " + args[0] + "] : " + response);
+                                            System.out.println("[" + name + " " + args[0] + "] : " + response);
                                         }
                                         break;
                                     case "permissions":
@@ -83,18 +86,18 @@ public class ClientHandler extends Thread {
                                                 response = PartyHandler.trySetPartyPermissions(client, args[2]);
 
                                             client.getWriter().writeUTF(response);
-                                            System.out.println("[" + client.getName() + " " + args[0] + "] : " + response);
+                                            System.out.println("[" + name + " " + args[0] + "] : " + response);
                                         }
                                         break;
                                     case "list":
                                         String users = "";
                                         int number = 0;
-                                        for (User user : client.getParty().getUserList().keySet()) {
+                                        for (User user : party.getUserList().keySet()) {
                                             users += user.getName() + ", ";
                                             number++;
                                         }
                                         users = users.substring(0, users.length() - 2);
-                                        System.out.println("[" + client.getName() + " " + args[0] + args[1] + "] : " + users);
+                                        System.out.println("[" + name + " " + args[0] + args[1] + "] : " + users);
                                         client.getWriter().writeUTF(number + " party member(s) : " + users);
                                         break;
                                     default:
@@ -106,11 +109,11 @@ public class ClientHandler extends Thread {
                                 client.getWriter().writeUTF("Invalid syntax : /party <invite/join/list>");
                             break;
                         case "leave":
-                            if (client.getParty().getUserList().size() > 1) {
-                                client.getParty().readjustHierarchy(client);
-                                PartyHandler.sendMessageToParty(client.getParty(), client.getName() + " left the chat!");
+                            if (party.getUserList().size() > 1) {
+                                party.readjustHierarchy(client);
+                                PartyHandler.sendMessageToParty(party, name + " left the chat!");
                                 client.createParty();
-                                System.out.println("[" + client.getName() + " " + args[0] + "] : left his chat!");
+                                System.out.println("[" + name + " " + args[0] + "] : left his chat!");
                             } else
                                 client.getWriter().writeUTF("You're already alone!");
                             break;
@@ -118,10 +121,10 @@ public class ClientHandler extends Thread {
                 }
                 // Handling chat message
                 else {
-                    String chatMessage = client.getName() + " : " + clientMessage;
+                    String chatMessage = name + " : " + clientMessage;
                     System.out.println(chatMessage);
 
-                    PartyHandler.sendMessageToParty(client.getParty(), chatMessage);
+                    PartyHandler.sendMessageToParty(party, chatMessage);
                 }
             }
         } catch (IOException e) {
